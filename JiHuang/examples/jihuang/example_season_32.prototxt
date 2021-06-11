@@ -1,0 +1,59 @@
+# Agent模板 ------------------------------------------------------------------------------------------
+agents{
+  name: "Agent"
+  count: 1
+  pos{x:10 y:10}
+}
+
+# 动物模板 ------------------------------------------------------------------------------------------
+animals{
+  name: "Pig"
+  count: 10
+  pos{x:12 y:10}
+}
+
+animals{
+  name: "Wolf"
+  count: 10
+  pos{x:10 y:11}
+}
+
+plants{
+  name: "Tree"
+  count: 9
+}
+
+plants{
+  name: "River"
+  count: 9
+}
+
+plants{
+  name: "Mine"
+  count: 9
+}
+
+
+tools{
+  name: "WarmStone"
+  count: 10
+  pos{x:11 y:10}
+}
+
+tools{
+  name: "Coat"
+  count: 10
+  pos{x:11 y:10}
+}
+
+tools{
+  name: "Spear"
+  count: 10
+  pos{x:11 y:10}
+}
+
+tools{
+  name: "Torch"
+  count: 10
+  pos{x:11 y:10}
+}

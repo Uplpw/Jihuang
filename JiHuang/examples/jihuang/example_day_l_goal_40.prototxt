@@ -1,0 +1,37 @@
+# Agent模板 ------------------------------------------------------------------------------------------
+agents{
+  name: "Agent"
+  count: 1
+}
+
+# 动物模板 ------------------------------------------------------------------------------------------
+animals{
+  name: "Pig"
+  count: 30
+}
+
+animals{
+  name: "Wolf"
+  count: 5
+}
+
+plants{
+  name: "Tree"
+  count: 30
+}
+
+plants{
+  name: "River"
+  count: 30
+}
+
+plants{
+  name: "Mine"
+  count: 20
+}
+
+foods{
+  name: "HpPot"
+  count: 10
+  pos{x:30 y:30}
+}

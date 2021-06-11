@@ -1,0 +1,67 @@
+# Agent模板 ------------------------------------------------------------------------------------------
+agents{
+  name: "Agent"
+  count: 1
+  pos{x:10  y:10}
+}
+
+# 动物模板 ------------------------------------------------------------------------------------------
+animals{
+  name: "Pig"
+  count: 0
+}
+
+animals{
+  name: "Wolf"
+  count: 0
+}
+
+
+plants{
+  name: "BirchTree"
+  count: 3
+  pos{x:11  y:11}
+  pos{x:10  y:11}
+  pos{x:11  y:10}
+}
+
+tools{
+  name: "Torch"
+  count: 0
+}
+
+tools{
+  name: "Spear"
+  count: 0
+}
+
+tools{
+  name: "Coat"
+  count: 0
+}
+
+materials{
+  name: "Gravel"
+  count: 0
+}
+
+materials{
+  name: "TreeBranch"
+  count: 0
+}
+
+foods{
+  name: "PigMeat"
+  count: 0
+}
+
+# 地形模板 ------------------------------------------------------------------------------------------
+geography{
+  name: "River"  # 山地形，地形没有属性，给个坐标就行
+  count: 0
+}
+
+geography{
+  name: "Mountain"  # 山地形，地形没有属性，给个坐标就行
+  count: 0
+}
