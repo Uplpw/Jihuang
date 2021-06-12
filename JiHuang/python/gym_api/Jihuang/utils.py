@@ -78,7 +78,6 @@ def getLogPath():
     path = "{}.txt".format(current_time)
     return path
 
-
 """
 loglist: 
 
@@ -86,7 +85,21 @@ step: count
 
 reward_sum: sum
 
-7 * action_type: sum_count, success_count, fail_count, reward_sum, 
+# each action has its format -> dict
+
+0 -> Idle: sum_count
+
+1 -> Attack: type, sum_count, reward_sum, attack_count, attack_reward, kill_count, kill_reward, fail_count
+
+2 -> Move: type, sum_count, reward_sum, success_count, success_reward, fail_count
+
+3 -> Consume: type, sum_count, reward_sum, meat_s_count, meat_f_count, meat_reward, water_s_count, water_f_count, water_reward
+
+4 -> Collect: type, sum_count, reward_sum, water_s_count
+
+5 -> Pickup: type, sum_count, reward_sum, meat_s_count, meat_f_count, meat_reward, water_s_count, water_f_count, water_reward
+
+6 -> Equip: type, sum_count, reward_sum, torch_s_count, torch_f_count
 
 """
 
