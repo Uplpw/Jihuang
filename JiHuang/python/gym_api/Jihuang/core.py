@@ -26,7 +26,7 @@ class JihuangSimple(gym.Env):
             self.displayer = MapDisplayer()
 
         self.action_space = spaces.MultiDiscrete([7, 40, 40])
-        self.observation_space = spaces.Box(low=-20, high=200000, shape=(22,))
+        self.observation_space = spaces.Box(low=-20, high=200000, shape=(30,))
 
         self.obs_process = JihuangObsProcess()
         self.reward = JihuangReward()
@@ -41,7 +41,7 @@ class JihuangSimple(gym.Env):
         self._prev_material = []
 
         # log
-        self.log_txt = './log/' + getLogPath()
+        self.log_txt = 'log/' + getLogPath()
         self.episode_log_list = initEpisodeLog()
 
     def step(self, action):
@@ -70,10 +70,20 @@ class JihuangSimple(gym.Env):
 
         elif 5 == action[0]:  # Pickup automatically
             material = self.obs_process._find_material(self.obs)
+            backpack = self.obs_process._analyse_backpack(self.obs)
             if len(material) <= 0:
                 self.action = [[0., 3., float(action[1]), float(action[2])]]
             else:
-                self.action = [[0., 3., float(material[0][2]), 1.]]
+                if int(material[0][2]) == 70009:
+                    if backpack[int(material[0][2])] >= 1:
+                        self.action = [[0., 3., float(action[1]), float(action[2])]]
+                    else:
+                        self.action = [[0., 3., float(material[0][2]), 1.]]
+                else:
+                    if backpack[int(material[0][2])] >= 3:
+                        self.action = [[0., 3., float(action[1]), float(action[2])]]
+                    else:
+                        self.action = [[0., 3., float(material[0][2]), 1.]]
 
         elif 6 == action[0]:  # Equip automatically
             backpack = self.obs_process._analyse_backpack(self.obs)
@@ -88,27 +98,28 @@ class JihuangSimple(gym.Env):
         self.env.step(self.action)
         self.obs = self.env.get_agent_observe()[0]
         obs_scale = self.obs_process._obs_scale(self.obs)
-        reward, result, result_type = self._calc_reward(action[0])
+        reward, result_type = self._calc_reward(action[0])
         self.step_count += 1
 
         # step log
-        if self.step_count % 100 <= 70:  # day
-            fprintNoHp((0, self.step_count, self.obs, action[0], reward, result))
-        else:  # night
-            fprintNoHp((1, self.step_count, self.obs, action[0], reward, result))
+        # if self.step_count % 100 <= 70:  # day
+        #     fprintNoHp((0, self.step_count, self.obs, action[0], reward, result))
+        # else:  # night
+        #     fprintNoHp((1, self.step_count, self.obs, action[0], reward, result))
 
         # update episode log
         updateEpisodeLog(self.episode_log_list, action[0], result_type, reward)
 
         # Done when the agent dies.
         if self.obs[1] <= 2.0 or self.obs[2] <= 2.0 or self.obs[3] <= 2.0:
-            print("done")
 
             # show episode log
-            # showEpisodeLog(self.episode_log_list)
+            showEpisodeLog(self.episode_log_list)
 
             # write episode log
             writeEpisodeLog(self.log_txt, self.episode_log_list)
+
+            print("done")
 
             done = True
         else:
@@ -121,7 +132,7 @@ class JihuangSimple(gym.Env):
     def _calc_reward(self, action_id):
         reward = 0.
         result = ""
-        result_type = False
+        result_type = ""
 
         # calc idle reward
         if action_id == 0:
@@ -129,38 +140,37 @@ class JihuangSimple(gym.Env):
 
         # calc attack reward
         if action_id == 1:
-            reward, attack, killed = self.reward._attack_pig_reward(self._prev_obs, self.obs, self._prev_pigs)
-            result = "| attack: {} | kill: {} |".format(attack, killed)
-
+            reward, result_type = self.reward._attack_pig_reward(self._prev_obs, self.obs, self._prev_pigs)
+            # result = "| attack: {} | kill: {} |".format(attack, killed)
 
         # calc move reward
         if action_id == 2:
             pigs = self.obs_process._find_pigs(self.obs)
-            reward, move = self.reward._move_reward(self._prev_obs, self.obs, self._prev_pigs, pigs)
-            result = "| move: {} |".format(move)
+            reward, result_type = self.reward._move_reward(self._prev_obs, self.obs, self._prev_pigs, pigs)
+            # result = "| move: {} |".format(move)
 
         # calc consume reward
         if action_id == 3:
-            reward, consume_type = self.reward._consume_reward(self._prev_obs, self.obs)
-            result = "| consume_type: {} |".format(consume_type)
+            reward, result_type = self.reward._consume_reward(self._prev_obs, self.obs)
+            # result = "| consume_type: {} |".format(consume_type)
 
         # calc collect reward
         if action_id == 4:
-            reward, collect_type = self.reward._collect_water_reward(self.obs)
-            result = "| collect_type: {} |".format(collect_type)
+            reward, result_type = self.reward._collect_water_reward(self.obs)
+            # result = "| collect_type: {} |".format(collect_type)
 
         # calc pickup reward
         if action_id == 5:
-            reward, pick_type = self.reward._pickup_material_reward(self._prev_obs, self.obs)
-            result = "| pick_type: {} |".format(pick_type)
+            reward, result_type = self.reward._pickup_material_reward(self._prev_obs, self.obs)
+            # result = "| pick_type: {} |".format(pick_type)
 
         # calc equip reward
         # 待修改
         if action_id == 6:
-            reward, pick_type = self.reward._equip_torch_reward(self._prev_obs, self.obs)
-            result = "| equip_type: {} |".format(pick_type)
+            reward, result_type = self.reward._equip_torch_reward(self._prev_obs, self.obs)
+            # result = "| equip_type: {} |".format(pick_type)
 
-        return reward, result, result_type
+        return reward, result_type
 
     # -------------------- env reset -------------------- #
     def reset(self):
