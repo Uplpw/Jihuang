@@ -13,7 +13,8 @@ env = make_vec_env("jihuang-simple-v0", n_envs=1)
 # env.reset()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-model = PPO("MlpPolicy", env, learning_rate=0.0003, batch_size=64, device=device, verbose=1)
+model = PPO("MlpPolicy", env, learning_rate=0.0003, batch_size=64, device=device, verbose=1,
+            tensorboard_log="./run/")
 
 model.learn(total_timesteps=int(1000000))
 model.save("ppo_jihuang")
