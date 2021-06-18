@@ -5,9 +5,9 @@ import torch as th
 from functools import partial
 from torch import nn
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
-from distributions import (
+from stable_baselines3.common.distributions import (
     Distribution,
-    MultiCategoricalDistribution,
+    CategoricalDistribution,
     make_proba_distribution,
 )
 from stable_baselines3.common.preprocessing import maybe_transpose, preprocess_obs
@@ -202,7 +202,8 @@ class ActorCriticPolicy(nn.Module):
         self._build_mlp_extractor()
 
         latent_dim_pi = self.mlp_extractor.latent_dim_pi
-        if isinstance(self.action_dist, MultiCategoricalDistribution):
+
+        if isinstance(self.action_dist, CategoricalDistribution):
             self.action_net = self.action_dist.proba_distribution_net(latent_dim=latent_dim_pi)
         else:
             raise NotImplementedError(f"Unsupported distribution '{self.action_dist}'.")
@@ -276,11 +277,11 @@ class ActorCriticPolicy(nn.Module):
     def _get_action_dist_from_latent(self, action_mask, latent_pi: th.Tensor,
                                      latent_sde: Optional[th.Tensor] = None) -> Distribution:
         mean_actions = self.action_net(latent_pi)
-        mean_actions_cpu = th.tensor(mean_actions).to(device)
+        mean_actions_cpu = th.tensor(mean_actions.clone().detach()).to(device)
         action_mask_cpu = th.BoolTensor(th.tensor(action_mask).bool()).to(device)
         mean_actions_cpu = mean_actions_cpu.masked_fill(action_mask_cpu, value=th.tensor(-10e7).to(device))
 
-        if isinstance(self.action_dist, MultiCategoricalDistribution):
+        if isinstance(self.action_dist, CategoricalDistribution):
             return self.action_dist.proba_distribution(action_logits=mean_actions_cpu)
         else:
             raise ValueError("Invalid action distribution")

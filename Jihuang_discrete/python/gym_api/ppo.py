@@ -12,7 +12,7 @@ from torch.nn import functional as F
 from policies import ActorCriticPolicy
 from stable_baselines3.common import logger, utils
 from stable_baselines3.common.callbacks import BaseCallback, CallbackList, ConvertCallback, EvalCallback
-from buffers import RolloutBuffer
+from stable_baselines3.common.buffers import RolloutBuffer
 from stable_baselines3.common.env_util import is_wrapped
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.noise import ActionNoise
@@ -66,7 +66,7 @@ class PPO:
             _init_setup_model: bool = True,
     ):
 
-        supported_action_spaces = (spaces.MultiDiscrete)
+        supported_action_spaces = (spaces.Box, spaces.Discrete, spaces.MultiDiscrete)
 
         self.policy_class = ActorCriticPolicy
 
@@ -463,13 +463,14 @@ class PPO:
             for rollout_data in self.rollout_buffer.get(self.batch_size):
                 actions = rollout_data.actions
                 if isinstance(self.action_space, spaces.Discrete):
-                    print("Convert discrete action from float to long")
-                    # Convert discrete action from float to long
+                    # print("Convert discrete action from float to long")
+                    # # Convert discrete action from float to long
                     actions = rollout_data.actions.long().flatten()
 
                 obs_utils = JihuangObsProcess()
                 action_mask = obs_utils.action_mask_from_obs(rollout_data.observations)
-                values, log_prob, entropy = self.policy.evaluate_actions(rollout_data.observations, actions, action_mask)
+                values, log_prob, entropy = self.policy.evaluate_actions(rollout_data.observations, actions,
+                                                                         action_mask)
                 values = values.flatten()
                 # Normalize advantage
                 advantages = rollout_data.advantages
@@ -583,7 +584,6 @@ class PPO:
 
             continue_training = self.collect_rollouts(self.env, callback, self.rollout_buffer,
                                                       n_rollout_steps=self.n_steps)
-
 
             # print("collect_rollouts after")
             if continue_training is False:
