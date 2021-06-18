@@ -18,6 +18,5 @@ plants{
 
 tools{
   name: "Torch"
-  count: 1
-  pos{x:5 y:3}
+  count: 2
 }

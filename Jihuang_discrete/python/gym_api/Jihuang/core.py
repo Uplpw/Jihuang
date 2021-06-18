@@ -10,9 +10,10 @@ from Jihuang.display_utils import MapDisplayer
 from Jihuang.reward import JihuangReward
 from Jihuang.obs_utils import JihuangObsProcess
 from Jihuang.utils import fprint, fprintNoHp, getLogPath, writeEpisodeLog, updateEpisodeLog, showEpisodeLog, \
-    initEpisodeLog, list_dict_contain
-from Jihuang.config import water_meat_count, torch_count
+    initEpisodeLog, list_dict_contain, action2string
+from Jihuang.args import water_meat_count, torch_count
 from Jihuang.find_pig_algo import random_find_pig, random_constraint_find_pig
+
 
 
 class JihuangSimple(gym.Env):
@@ -48,7 +49,6 @@ class JihuangSimple(gym.Env):
         self.episode_log_list = initEpisodeLog()
 
     def step(self, action: int):
-        print("action:", action, type(action))
         # translate into C++ Jihuang actions
         if action == 0:  # idle
             self.action = [[0., 0., 0., 0.]]
@@ -66,17 +66,14 @@ class JihuangSimple(gym.Env):
             self.action = [[0., 8.0, float(offset_x), float(offset_y)]]
 
         # run action and obtain new obs
-        print("asda:", self.action)
         if self.obs is not None:
             self._prev_obs = self.obs.copy()
-        print("999999")
         self.env.step(self.action)
-        print("step")
         self.obs = self.env.get_agent_observe()[0]
         obs_scale = self.obs_process._obs_scale(self.obs)
         reward, result_type = self._calc_reward(action)
         self.step_count += 1
-        print(self.step_count)
+        # print("agent:", self.obs[2], self.obs[3], " | log", self.step_count, action2string(action), result_type)
 
         # update episode log
         updateEpisodeLog(self.episode_log_list, action, result_type, reward)
@@ -84,7 +81,7 @@ class JihuangSimple(gym.Env):
         # Done when the agent dies.
         if self.obs[1] <= 2.0 or self.obs[2] <= 2.0 or self.obs[3] <= 2.0:
             showEpisodeLog(self.episode_log_list)
-            # writeEpisodeLog(self.log_txt, self.episode_log_list)
+            writeEpisodeLog(self.log_txt, self.episode_log_list)
             done = True
         else:
             done = False
@@ -141,11 +138,9 @@ class JihuangSimple(gym.Env):
                 agent_pig_distance = np.sqrt((pig_x - x_init) ** 2 + (pig_y - y_init) ** 2)
                 offset_x, offset_y = 4.1 * (pig_x - x_init) / agent_pig_distance, 4.1 * (
                         pig_y - y_init) / agent_pig_distance
-                print("select_target1", int(offset_x), int(offset_y))
                 return int(offset_x), int(offset_y)
             else:
                 offset_x, offset_y = random_find_pig()
-                print("select_target2", offset_x, offset_y)
                 return offset_x, offset_y
 
     # -------------------- calc_reward -------------------- #
@@ -159,29 +154,28 @@ class JihuangSimple(gym.Env):
 
         # calc attack reward
         if action_id == 1:
-            reward, result_type = self.reward._attack_pig_reward(self._prev_obs, self.obs, self._prev_pigs)
-
-        # calc move reward
-        if action_id == 2:
-            pigs = self.obs_process._find_pigs(self.obs)
-            reward, result_type = self.reward._move_reward(self._prev_obs, self.obs, self._prev_pigs, pigs)
-
-        # calc consume reward
-        if action_id == 3:
-            reward, result_type = self.reward._consume_reward(self._prev_obs, self.obs)
+            reward, result_type = self.reward._attack_pig_reward(self._prev_obs, self.obs)
 
         # calc collect reward
-        if action_id == 4:
+        if action_id == 2:
             reward, result_type = self.reward._collect_water_reward(self.obs)
 
         # calc pickup reward
-        if action_id == 5:
+        if action_id == 3:
             reward, result_type = self.reward._pickup_material_reward(self._prev_obs, self.obs)
 
+        # calc consume reward
+        if action_id == 4:
+            reward, result_type = self.reward._consume_reward(self._prev_obs, self.obs)
+
         # calc equip reward
-        if action_id == 6:
+        if action_id == 5:
             reward, result_type = self.reward._equip_torch_reward(self._prev_obs, self.obs)
 
+        # calc move reward
+        if action_id == 6:
+            reward, result_type = self.reward._move_reward(self._prev_obs, self.obs)
+        # print("core reward:", reward, result_type)
         return reward, result_type
 
     # -------------------- env reset -------------------- #

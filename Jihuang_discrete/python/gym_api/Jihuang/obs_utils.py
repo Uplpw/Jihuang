@@ -1,6 +1,6 @@
 import numpy as np
 from torch import Tensor
-from Jihuang.config import water_meat_count, torch_count
+from Jihuang.args import water_meat_count, torch_count
 
 
 class JihuangObsProcess:
@@ -149,7 +149,7 @@ class JihuangObsProcess:
             obs = np.array(obs_tensor.cpu()).copy()
         else:
             obs = obs_tensor.copy()
-        action_mask = np.zeros((obs_tensor.shape[0], 87))
+        action_mask = np.zeros((obs_tensor.shape[0], 7))
         for i in range(obs_tensor.shape[0]):
             # 7 action
 
@@ -157,7 +157,7 @@ class JihuangObsProcess:
             action_mask[i][0] = 1  # idle
 
             # 1 attack
-            if obs[i][30] == 0. and obs[i][31] == 0. or obs[i][32] == 0.:
+            if obs[i][30] == 0. and obs[i][31] == 0. and obs[i][32] == 0.:
                 action_mask[i][1] = 1
             else:
                 x_init = obs[i][2]
@@ -166,27 +166,27 @@ class JihuangObsProcess:
                 if attack_pig_distance > 4.1:
                     action_mask[i][1] = 1
 
-            # 2 move
-            # action_mask[2] = 1
+            # 2 Collect
+            if obs[i][33] == 0. and obs[i][34] == 0.:
+                action_mask[i][2] = 1
 
-            # 3 Consume
+            # 3 pickup
+            if obs[i][35] == 0. and obs[i][36] == 0. or obs[i][37] == 0.:
+                action_mask[i][3] = 1
+
+            # 4 Consume
             backpack = self._analyse_backpack_1(obs[i])
             if backpack[30001] <= 0 and backpack[30002] <= 0:
-                action_mask[i][3] = 1
+                action_mask[i][4] = 1
             if obs[i][0] >= 50 and obs[i][1] >= 50:
-                action_mask[i][3] = 1
+                action_mask[i][4] = 1
 
-            # 4 Collect
-            if obs[i][33] == 0. and obs[i][34] == 0.:
-                action_mask[i][1] = 1
-
-            # 5 pickup
-            if obs[i][35] == 0. and obs[i][36] == 0. or obs[i][37] == 0.:
+            # 5 equip
+            if backpack[70009] <= 0:
                 action_mask[i][5] = 1
 
-            # 6 equip
-            if backpack[70009] <= 0:
-                action_mask[i][6] = 1
+            # 2 move
+            # action_mask[6] = 1
 
         return action_mask
 

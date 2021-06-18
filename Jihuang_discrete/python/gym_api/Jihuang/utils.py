@@ -1,4 +1,3 @@
-# from Jihuang.reward import JihuangReward
 import os
 from Jihuang.obs_utils import JihuangObsProcess
 from datetime import datetime
@@ -9,7 +8,6 @@ def list_dict_contain(list_dict, obj):
         if i[2] == obj:
             return True
     return False
-
 
 
 # int action to string action
@@ -51,27 +49,16 @@ def getLogPath():
 
 """
 loglist: 
-
 step: count
-
 reward_sum: sum
-
 # each action has its format -> dict
-
 0 -> Idle: count
-
 1 -> Attack: type, count, reward, attack_count, attack_reward, kill_count, kill_reward, fail_count
-
 2 -> Move: type, count, reward, success_count, success_reward, fail_count
-
 3 -> Consume: type, count, reward, meat_count, meat_reward, water_count, water_reward, fail_count
-
 4 -> Collect: type, count, reward, water_count, water_reward, fail_count
-
 5 -> Pickup: type, count, reward, meat_count, meat_reward, water_count, water_reward, fail_count
-
 6 -> Equip: type, count, reward, torch_count, torch_reward, fail_count
-
 """
 
 
@@ -99,26 +86,6 @@ def initEpisodeLog():
     log_dict_Attack["fail_count"] = 0
     log_list.append(log_dict_Attack)
 
-    log_dict_Move = {}
-    log_dict_Move["type"] = "Move"
-    log_dict_Move["count"] = 0
-    log_dict_Move["reward"] = 0.
-    log_dict_Move["success_count"] = 0
-    log_dict_Move["success_reward"] = 0.
-    log_dict_Move["fail_count"] = 0
-    log_list.append(log_dict_Move)
-
-    log_dict_Consume = {}
-    log_dict_Consume["type"] = "Consume"
-    log_dict_Consume["count"] = 0
-    log_dict_Consume["reward"] = 0.
-    log_dict_Consume["meat_count"] = 0
-    log_dict_Consume["meat_reward"] = 0.
-    log_dict_Consume["water_count"] = 0
-    log_dict_Consume["water_reward"] = 0.
-    log_dict_Consume["fail_count"] = 0
-    log_list.append(log_dict_Consume)
-
     log_dict_Collect = {}
     log_dict_Collect["type"] = "Collect"
     log_dict_Collect["count"] = 0
@@ -139,6 +106,17 @@ def initEpisodeLog():
     log_dict_Pickup["fail_count"] = 0
     log_list.append(log_dict_Pickup)
 
+    log_dict_Consume = {}
+    log_dict_Consume["type"] = "Consume"
+    log_dict_Consume["count"] = 0
+    log_dict_Consume["reward"] = 0.
+    log_dict_Consume["meat_count"] = 0
+    log_dict_Consume["meat_reward"] = 0.
+    log_dict_Consume["water_count"] = 0
+    log_dict_Consume["water_reward"] = 0.
+    log_dict_Consume["fail_count"] = 0
+    log_list.append(log_dict_Consume)
+
     log_dict_Equip = {}
     log_dict_Equip["type"] = "Equip"
     log_dict_Equip["count"] = 0
@@ -147,6 +125,15 @@ def initEpisodeLog():
     log_dict_Equip["torch_reward"] = 0.
     log_dict_Equip["fail_count"] = 0.
     log_list.append(log_dict_Equip)
+
+    log_dict_Move = {}
+    log_dict_Move["type"] = "Move"
+    log_dict_Move["count"] = 0
+    log_dict_Move["reward"] = 0.
+    log_dict_Move["success_count"] = 0
+    log_dict_Move["success_reward"] = 0.
+    log_dict_Move["fail_count"] = 0
+    log_list.append(log_dict_Move)
 
     return log_list
 
@@ -200,17 +187,17 @@ def updateEpisodeLog(log_list, action_type, result_type, reward):
         if result_type == "fail":
             log_list[2]["fail_count"] += 1
 
-    # Move
+    # Collect
     elif action_id == 2:
         log_list[3]["count"] += 1
         log_list[3]["reward"] += reward
-        if result_type == "move":
-            log_list[3]["success_count"] += 1
-            log_list[3]["success_reward"] += reward
+        if result_type == "water":
+            log_list[3]["water_count"] += 1
+            log_list[3]["water_reward"] += reward
         if result_type == "fail":
             log_list[3]["fail_count"] += 1
 
-    # Consume
+    # Pickup
     elif action_id == 3:
         log_list[4]["count"] += 1
         log_list[4]["reward"] += reward
@@ -225,38 +212,38 @@ def updateEpisodeLog(log_list, action_type, result_type, reward):
         if result_type == "fail":
             log_list[4]["fail_count"] += 1
 
-    # Collect
+    # Consume
     elif action_id == 4:
         log_list[5]["count"] += 1
         log_list[5]["reward"] += reward
+        if result_type == "meat":
+            log_list[5]["meat_count"] += 1
+            log_list[5]["meat_reward"] += reward
+
         if result_type == "water":
             log_list[5]["water_count"] += 1
             log_list[5]["water_reward"] += reward
+
         if result_type == "fail":
             log_list[5]["fail_count"] += 1
 
-    # Pickup
+    # PickupEquip
     elif action_id == 5:
         log_list[6]["count"] += 1
         log_list[6]["reward"] += reward
-        if result_type == "meat":
-            log_list[6]["meat_count"] += 1
-            log_list[6]["meat_reward"] += reward
-
-        if result_type == "water":
-            log_list[6]["water_count"] += 1
-            log_list[6]["water_reward"] += reward
-
+        if result_type == "torch":
+            log_list[6]["torch_count"] += 1
+            log_list[6]["torch_reward"] += reward
         if result_type == "fail":
             log_list[6]["fail_count"] += 1
 
-    # Equip
+    # Move
     elif action_id == 6:
         log_list[7]["count"] += 1
         log_list[7]["reward"] += reward
-        if result_type == "torch":
-            log_list[7]["torch_count"] += 1
-            log_list[7]["torch_reward"] += reward
+        if result_type == "move":
+            log_list[7]["success_count"] += 1
+            log_list[7]["success_reward"] += reward
         if result_type == "fail":
             log_list[7]["fail_count"] += 1
 

@@ -1,57 +1,60 @@
 import numpy as np
 from Jihuang.utils import dictCompare
 from Jihuang.obs_utils import JihuangObsProcess
-from Jihuang.config import water_meat_count, torch_count
+from Jihuang.args import water_meat_count, torch_count
 
 
 class JihuangReward:
     def __init__(self):
         self.obs_utils = JihuangObsProcess()
 
-    def _move_reward(self, prev_obs, obs, prev_pigs, pigs):
+    def _move_reward(self, prev_obs, obs):
         result_type = "fail"
-
         move_reward_pig = 0
-        prev_pigs = prev_pigs.copy()
+
+        prev_obs_copy = prev_obs.copy()
+        obs_copy = obs.copy()
+        prev_pigs = self.obs_utils._find_pigs(prev_obs_copy)
+        pigs = self.obs_utils._find_pigs(obs_copy)
+
         prev_x_init = prev_obs[5]
         prev_y_init = prev_obs[6]
         x_init = obs[5]
         y_init = obs[6]
 
         if len(prev_pigs) == 0 and len(pigs) > 0:
-            move_reward_pig = 3.
+            move_reward_pig = 1.
             result_type = "move"
         if len(prev_pigs) > 0 and len(pigs) > 0:
             prev_pig_distance = np.sqrt(
                 (prev_pigs[0][0] - prev_x_init) ** 2 + (prev_pigs[0][1] - prev_y_init) ** 2)  # 上个状态与猪的距离
-            pig_distance = np.sqrt((pigs[0][0] - x_init) ** 2 + (pigs[0][1] - y_init) ** 2)   # 当前状态与猪的距离
+            pig_distance = np.sqrt((pigs[0][0] - x_init) ** 2 + (pigs[0][1] - y_init) ** 2)  # 当前状态与猪的距离
 
             if prev_pig_distance - pig_distance > 0:
-                move_reward_pig = 2.
+                move_reward_pig = 1.
                 result_type = "move"
 
         return move_reward_pig, result_type
 
-    def _attack_pig_reward(self, prev_obs, obs, prev_pigs):
-        prev_pigs = prev_pigs.copy()
+    def _attack_pig_reward(self, prev_obs, obs):
+        attack_reward = 0
         result_type = "fail"
 
-        if len(prev_pigs) == 0:
-            attack_reward = 0
-        else:
+        prev_obs_copy = prev_obs.copy()
+        prev_pigs = self.obs_utils._find_pigs(prev_obs_copy)
+        if len(prev_pigs) > 0:
             x_init = prev_obs[5]
             y_init = prev_obs[6]
             attack_pig_distance = np.sqrt(
                 (x_init - prev_pigs[0][0]) ** 2 + ((y_init - prev_pigs[0][1])) ** 2)  # 攻击之前的距离
             if attack_pig_distance <= 4.1:
                 if prev_pigs[0][2] > 60:  # 一次攻击 60 hp
-                    attack_reward = 10
+                    attack_reward = 5
                     result_type = "attack"
                 else:
-                    attack_reward = 1000
+                    attack_reward = 50
                     result_type = "kill"
-            else:
-                attack_reward = 1.0 / abs(attack_pig_distance)
+
         return attack_reward, result_type
 
     # ---------- consume reward design ---------- #
@@ -63,13 +66,13 @@ class JihuangReward:
             consume_reward = 0
             consume_reward += max(obs[2] - prev_obs[2] + 2, 0)
             if consume_reward > 0:
-                if consume_reward < 30:
+                if consume_reward < 40:
                     consume_reward /= 2.
                 result_type = "meat"
             else:
                 consume_reward += max(obs[3] - prev_obs[3] + 2, 0)
                 if consume_reward > 0:
-                    if consume_reward < 30:
+                    if consume_reward < 40:
                         consume_reward /= 2.
                     result_type = "water"
 

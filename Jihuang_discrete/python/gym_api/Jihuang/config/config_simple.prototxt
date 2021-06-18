@@ -9,7 +9,7 @@ bool_config_table{
 birth_point_table{
     field_name:"  Id  #    Name          #     birth_point_geography_type       "
     records:   "  1   #    Agent         #           (0;10)                    "
-    records:   "  2   #    Pig           #           (0;10)                    "
+    records:   "  2   #    Pig           #           (0;20)                    "
     records:   "  2   #    Pig           #           (2;10)                    "
     records:   "  4   #    Wolf          #           (2;10)                    "
     records:   "  5   #    Tree          #           (2;10)                    "
@@ -83,7 +83,7 @@ agent_table{
 }
 animal_table{
     field_name:"  Id  #  Type  #  Name  #  attackable  #  collectable  #  vision_range  #  aggressive  #  run_speed  #   hp    #  atk_phy  #  def_phy  #  drop_ID  #  attack_distance  #  run_speed_var  #  hp_var  #  atk_phy_var  #  def_phy_var  #  regenerate_count  #  random_revive  "
-    records:   "  1   #   2    #  Pig   #      1       #       0       #      6.0       #      0       #     0.5     #  120  #    0.0    #    0.0    #  100002   #        3.1        #        0        #   50     #       0       #       0       #         8          #        1        "
+    records:   "  1   #   2    #  Pig   #      1       #       0       #      6.0       #      0       #     0.5     #  100  #    0.0    #    0.0    #  100002   #        3.1        #        0        #   50     #       0       #       0       #         8          #        1        "
     records:   "  2   #   3    #  Wolf  #      1       #       0       #      6.0       #      1       #     0.1     #  1000   #   60.0    #    20.0   #  100003   #        3.1        #        1        #   50     #      10       #       10      #         8          #        1        "
 }
 plant_table{
