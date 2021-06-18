@@ -1,20 +1,21 @@
 import sys
 import torch
+
 sys.path.insert(-1, "JiHuang/python")
+
 import gym, Jihuang
 import numpy as np
-import gym
-from ppo import PPO
+from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
 
 env = make_vec_env("jihuang-simple-v0", n_envs=1)
 
+# env.reset()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-model = PPO(env, learning_rate=0.0003, batch_size=64, device=device, verbose=1, tensorboard_log="./run/")
+model = PPO("MlpPolicy", env, learning_rate=0.0003, batch_size=64, device=device, verbose=1, tensorboard_log="./run/")
 
-model.learn(total_timesteps=int(1000))
-
+model.learn(total_timesteps=int(1000000))
 model.save("ppo_jihuang")
 
 del model  # remove to demonstrate saving and loading
@@ -35,7 +36,6 @@ for eposide in range(50):
         obs, rewards, dones, info = env.step(action)
         sum_reward = sum_reward + rewards
         step += 1
-
     reward_list.append(sum_reward[0])
     step_list.append(step)
     sum_reward = 0
