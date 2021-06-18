@@ -6,7 +6,7 @@ import gym, Jihuang
 from IPython.display import clear_output
 import matplotlib.pyplot as plt
 import numpy as np
-from utils import SoftmaxPolicy, SigmoidTermination, EpsGreedyPolicy, Critic
+from oc_utils import SoftmaxPolicy, SigmoidTermination, EpsGreedyPolicy, Critic
 from config import discount, lr_term, lr_intra, lr_critic, epsilon, nruns, temperature, nepisodes, nsteps, noptions
 
 # Random number generator for reproducability
@@ -19,7 +19,8 @@ for run in range(nruns):
     env = gym.make("jihuang-simple-v0")
 
     nstates = env.observation_space.shape[0]
-    nactions = env.action_space.shape[0]
+    nactions = env.action_space.n
+    print(nstates, nactions)
 
     option_policies = [SoftmaxPolicy(rng, lr_intra, nstates, nactions, temperature) for _ in range(noptions)]
     option_terminations = [SigmoidTermination(rng, lr_term, nstates) for _ in range(noptions)]
@@ -28,7 +29,8 @@ for run in range(nruns):
 
     for episode in range(nepisodes):
         state = env.reset()
-        option = policy_over_options.sample(state)
+        print("nruns:", run, "episode:", episode, "state:", np.array(state).astype(dtype=int),)
+        option = policy_over_options.sample(np.array(state).astype(dtype=int))
         action = option_policies[option].sample(state)
 
         critic.cache(state, option, action)
@@ -65,19 +67,20 @@ for run in range(nruns):
         history[run, episode, 1] = avg_duration
 
     option_terminations_list.append(option_terminations)
+    print("episode:", history[run, :, 0])
 
-    clear_output(True)
-    plt.figure(figsize=(20, 6))
-    plt.subplot(121)
-    plt.title('run: %s' % run)
-    plt.xlabel('episodes')
-    plt.ylabel('steps')
-    plt.plot(np.mean(history[:run + 1, :, 0], axis=0))
-    plt.grid(True)
-    plt.subplot(122)
-    plt.title('run: %s' % run)
-    plt.xlabel('episodes')
-    plt.ylabel('avg. option duration')
-    plt.plot(np.mean(history[:run + 1, :, 1], axis=0))
-    plt.grid(True)
-    plt.show()
+    # clear_output(True)
+    # plt.figure(figsize=(20, 6))
+    # plt.subplot(121)
+    # plt.title('run: %s' % run)
+    # plt.xlabel('episodes')
+    # plt.ylabel('steps')
+    # plt.plot(np.mean(history[:run + 1, :, 0], axis=0))
+    # plt.grid(True)
+    # plt.subplot(122)
+    # plt.title('run: %s' % run)
+    # plt.xlabel('episodes')
+    # plt.ylabel('avg. option duration')
+    # plt.plot(np.mean(history[:run + 1, :, 1], axis=0))
+    # plt.grid(True)
+    # plt.show()

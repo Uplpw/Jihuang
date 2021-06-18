@@ -3,7 +3,7 @@ import numpy as np
 # logsumexp() and expit() are used because they are
 # numerically stable
 # expit() is the sigmoid function
-from scipy.misc import logsumexp
+from scipy.special import logsumexp
 from scipy.special import expit
 
 
