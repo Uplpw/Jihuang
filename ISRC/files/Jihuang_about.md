@@ -54,7 +54,7 @@
 - [agent_id, action_id, para1, para2]，agent_id=0（单智能体）
 - 9 种动作 
   - 0——idleAction，后面两个参数无效
-  - 1——attackAction，后面两个参数是坐标
+  - 1——attackAction，后面两个参数是偏移量
   - 2——collectAction，后面两个参数是类别（is_material，第二类别），数量
   - 3——pickupAction，后面两个参数是类别，数量
   - 4——consumeAction，后面两个参数是类别，数量
