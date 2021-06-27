@@ -1,62 +1,60 @@
 import numpy as np
 from Jihuang.utils import dictCompare
 from Jihuang.obs_utils import JihuangObsProcess
+from Jihuang.args import water_meat_count, torch_count
 
 
 class JihuangReward:
     def __init__(self):
         self.obs_utils = JihuangObsProcess()
 
-    def _move_reward(self, prev_obs, obs, prev_pigs, pigs):
+    def _move_reward(self, prev_obs, obs):
         result_type = "fail"
-
         move_reward_pig = 0
-        prev_pigs = prev_pigs.copy()
+
+        prev_obs_copy = prev_obs.copy()
+        obs_copy = obs.copy()
+        prev_pigs = self.obs_utils._find_pigs(prev_obs_copy)
+        pigs = self.obs_utils._find_pigs(obs_copy)
 
         prev_x_init = prev_obs[5]
         prev_y_init = prev_obs[6]
-
         x_init = obs[5]
         y_init = obs[6]
 
         if len(prev_pigs) == 0 and len(pigs) > 0:
-            move_reward_pig = 3.
+            move_reward_pig = 1.
             result_type = "move"
         if len(prev_pigs) > 0 and len(pigs) > 0:
             prev_pig_distance = np.sqrt(
                 (prev_pigs[0][0] - prev_x_init) ** 2 + (prev_pigs[0][1] - prev_y_init) ** 2)  # 上个状态与猪的距离
-            pig_distance = np.sqrt((pigs[0][0] - x_init) ** 2 + (pigs[0][1] - y_init) ** 2)   # 当前状态与猪的距离
+            pig_distance = np.sqrt((pigs[0][0] - x_init) ** 2 + (pigs[0][1] - y_init) ** 2)  # 当前状态与猪的距离
 
             if prev_pig_distance - pig_distance > 0:
-                move_reward_pig = 2.
+                move_reward_pig = 1.
                 result_type = "move"
 
         return move_reward_pig, result_type
 
-    def _attack_pig_reward(self, prev_obs, obs, prev_pigs):
-        prev_pigs = prev_pigs.copy()
+    def _attack_pig_reward(self, prev_obs, obs):
+        attack_reward = 0
         result_type = "fail"
 
-        if len(prev_pigs) == 0:
-            attack_reward = 0
-        else:
+        prev_obs_copy = prev_obs.copy()
+        prev_pigs = self.obs_utils._find_pigs(prev_obs_copy)
+        if len(prev_pigs) > 0:
             x_init = prev_obs[5]
             y_init = prev_obs[6]
             attack_pig_distance = np.sqrt(
                 (x_init - prev_pigs[0][0]) ** 2 + ((y_init - prev_pigs[0][1])) ** 2)  # 攻击之前的距离
             if attack_pig_distance <= 4.1:
                 if prev_pigs[0][2] > 60:  # 一次攻击 60 hp
-                    attack_reward = 10
+                    attack_reward = 5
                     result_type = "attack"
-                    # print("|-------------------------------Attack succeeded-------------------------------|")
-                    # print("|-----pig hp-----| ", prev_pigs[0][2] - 60)
                 else:
-                    attack_reward = 100
+                    attack_reward = 50
                     result_type = "kill"
-                    # print("|-------------------------------Attack succeeded-------------------------------|")
-                    # print("|-------------------------------      Kill    -------------------------------|")
-            else:
-                attack_reward = 1.0 / abs(attack_pig_distance)
+
         return attack_reward, result_type
 
     # ---------- consume reward design ---------- #
@@ -68,17 +66,15 @@ class JihuangReward:
             consume_reward = 0
             consume_reward += max(obs[2] - prev_obs[2] + 2, 0)
             if consume_reward > 0:
-                if consume_reward < 30:
-                    consume_reward /= 1.5
-                # print("satiety:", prev_obs[2], obs[2], consume_reward)
+                if consume_reward < 40:
+                    consume_reward /= 2.
                 result_type = "meat"
             else:
                 consume_reward += max(obs[3] - prev_obs[3] + 2, 0)
                 if consume_reward > 0:
-                    if consume_reward < 30:
-                        consume_reward /= 1.5
+                    if consume_reward < 40:
+                        consume_reward /= 2.
                     result_type = "water"
-                    # print("thirsty:", prev_obs[3], obs[3], consume_reward)
 
         return consume_reward, result_type
 
@@ -88,7 +84,7 @@ class JihuangReward:
         if obs[7] == 0.0:
             collect_reward = 0
         else:
-            collect_reward = 2.5
+            collect_reward = 2.
             result_type = "water"
         return collect_reward, result_type
 
@@ -103,46 +99,17 @@ class JihuangReward:
             pack = self.obs_utils._analyse_backpack(obs)
             list_key = dictCompare(prev_pack, pack)
             for key in list_key:
-                # item max = 1
-                # if key == 30001:
-                #     if pack[30001] < 1:
-                #         pickup_reward = 5.
-                #     pickup_type = "Water"
-                # if key == 30002:
-                #     if pack[30002] < 1:
-                #         pickup_reward = 5.
-                #     pickup_type = "Meat"
-                # if key == 70009:
-                #     if pack[70009] < 1:
-                #         pickup_reward = 5.
-                #     pickup_type = "Torch"
-
-                # item max = 2
-                # if key == 30001:
-                #     if pack[30001] < 2:
-                #         pickup_reward = 5.
-                #     pickup_type = "Water"
-                # if key == 30002:
-                #     if pack[30002] < 2:
-                #         pickup_reward = 5.
-                #     pickup_type = "Meat"
-                # if key == 70009:
-                #     if pack[70009] < 1:
-                #         pickup_reward = 5.
-                #     pickup_type = "Torch"
-
-                # item max = 3
                 if key == 30001:
-                    if pack[30001] < 3:
-                        pickup_reward = 5.
+                    if pack[30001] <= water_meat_count:
+                        pickup_reward = 10.
                     result_type = "water"
                 if key == 30002:
-                    if pack[30002] < 3:
-                        pickup_reward = 5.
+                    if pack[30002] <= water_meat_count:
+                        pickup_reward = 10.
                     result_type = "meat"
                 if key == 70009:
-                    if pack[70009] < 1:
-                        pickup_reward = 5.
+                    if pack[70009] <= torch_count:
+                        pickup_reward = 10.
                     result_type = "torch"
 
         return pickup_reward, result_type
@@ -153,25 +120,7 @@ class JihuangReward:
         if obs[7] == 0.0:
             equip_reward = 0
         else:
-            prev_equipments = self.obs_utils._find_equipment(prev_obs)
-            equipments = self.obs_utils._find_equipment(obs)
-            list_key_equipments = dictCompare(prev_equipments, equipments)
-
-            prev_buffs = self.obs_utils._find_buff(prev_obs)
-            buffs = self.obs_utils._find_buff(obs)
-            list_key_buffs = dictCompare(prev_buffs, buffs, key=1001)
-
-            equip_reward = 0
-            equip_type = ""
-
-            prev_pack = self.obs_utils._analyse_backpack(prev_obs)
-            pack = self.obs_utils._analyse_backpack(obs)
-            list_key = dictCompare(prev_pack, pack)
-
-            # print("length:", len(list_key_equipments), len(list_key_buffs))
-            for key in list_key:
-                if key == 70009 and len(list_key_equipments) > 0:
-                    equip_reward = 10.
-                    result_type = "torch"
+            equip_reward = 10.
+            result_type = "torch"
 
         return equip_reward, result_type

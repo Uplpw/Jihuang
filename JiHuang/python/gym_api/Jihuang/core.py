@@ -1,4 +1,5 @@
 import gym
+import random
 import numpy as np
 from gym import error, spaces, utils
 from gym.utils import seeding
@@ -8,8 +9,9 @@ from numpy.core.numeric import Infinity
 from Jihuang.display_utils import MapDisplayer
 from Jihuang.reward import JihuangReward
 from Jihuang.obs_utils import JihuangObsProcess
-from Jihuang.utils import fprint, fprintNoHp, getLogPath, writeEpisodeLog, updateEpisodeLog, showEpisodeLog, \
-    initEpisodeLog
+from Jihuang.utils import getLogPath, writeEpisodeLog, updateEpisodeLog, showEpisodeLog, \
+    initEpisodeLog, list_dict_contain, action2string, fprintNoHp
+from Jihuang.find_pig_algo import random_find_pig, random_constraint_find_pig
 
 
 class JihuangSimple(gym.Env):
@@ -25,8 +27,8 @@ class JihuangSimple(gym.Env):
         if displayer:
             self.displayer = MapDisplayer()
 
-        self.action_space = spaces.MultiDiscrete([7, 40, 40])
-        self.observation_space = spaces.Box(low=-20, high=200000, shape=(30,))
+        self.action_space = spaces.Discrete(7)
+        self.observation_space = spaces.Box(low=-20, high=200000, shape=(77,))
 
         self.obs_process = JihuangObsProcess()
         self.reward = JihuangReward()
@@ -35,62 +37,26 @@ class JihuangSimple(gym.Env):
         self._prev_obs = np.zeros((4219,))
         self.obs = None
 
-        # save animal or plants or material list
-        self._prev_pigs = []
-        self._prev_rivers = []
-        self._prev_material = []
-
         # log
         self.log_txt = 'log/' + getLogPath()
         self.episode_log_list = initEpisodeLog()
 
-    def step(self, action):
+    def step(self, action: int):
         # translate into C++ Jihuang actions
-        if 0 == action[0]:  # Idle
+        if action == 0:  # idle
             self.action = [[0., 0., 0., 0.]]
-        elif 1 == action[0]:  # Auto attack
-            self._prev_pigs = self.obs_process._find_pigs(self.obs).copy()
-            if len(self._prev_pigs) == 0:
-                self.action = [[0., 1., float(action[1]), float(action[2])]]
-            else:
-                # print("----------------------find pig----------------------", len(self._prev_pigs))
-                self.action = [[0., 1., float(self._prev_pigs[0][0]), float(self._prev_pigs[0][1])]]
-        elif 2 == action[0]:  # Move, x and y
-            self.action = [[0., 8., float(action[1]), float(action[2])]]
 
-        elif 3 == action[0]:  # Consume, type and num
-            type_of_consume = 30001. if action[1] >= 20 else 30002.  # Only meat or water
-            # print("consume before:", self.reward._analyse_backpack(self.obs), type_of_consume)
-            self.action = [[0., 4., type_of_consume, 1.]]
+        elif action <= 2:  # attack, collect
+            target_x, target_y = self.select_target(action)
+            self.action = [[0., float(action), float(target_x), float(target_y)]]
 
-        elif 4 == action[0]:  # Collect, type and num
-            self.rivers = self.obs_process._find_rivers(self.obs).copy()
-            self.action = [[0., 2., float(self.rivers[0][0]), float(self.rivers[0][1])]] if len(self.rivers) > 0 else [
-                [0., 2., float(action[1]), float(action[2])]]
+        elif action <= 5:  # pickup, consume, equip
+            target_type, _ = self.select_target(action)
+            self.action = [[0., float(action), float(target_type), 1.]]
 
-        elif 5 == action[0]:  # Pickup automatically
-            material = self.obs_process._find_material(self.obs)
-            backpack = self.obs_process._analyse_backpack(self.obs)
-            if len(material) <= 0:
-                self.action = [[0., 3., float(action[1]), float(action[2])]]
-            else:
-                if int(material[0][2]) == 70009:
-                    if backpack[int(material[0][2])] >= 1:
-                        self.action = [[0., 3., float(action[1]), float(action[2])]]
-                    else:
-                        self.action = [[0., 3., float(material[0][2]), 1.]]
-                else:
-                    if backpack[int(material[0][2])] >= 3:
-                        self.action = [[0., 3., float(action[1]), float(action[2])]]
-                    else:
-                        self.action = [[0., 3., float(material[0][2]), 1.]]
-
-        elif 6 == action[0]:  # Equip automatically
-            backpack = self.obs_process._analyse_backpack(self.obs)
-            if backpack[70009] <= 0:
-                self.action = [[0., 5., float(action[1]), float(action[2])]]
-            else:
-                self.action = [[0., 5., float(70009), 0.]]
+        elif action == 6:  # move
+            offset_x, offset_y = self.select_target(action)
+            self.action = [[0., 8.0, float(offset_x), float(offset_y)]]
 
         # run action and obtain new obs
         if self.obs is not None:
@@ -98,29 +64,16 @@ class JihuangSimple(gym.Env):
         self.env.step(self.action)
         self.obs = self.env.get_agent_observe()[0]
         obs_scale = self.obs_process._obs_scale(self.obs)
-        reward, result_type = self._calc_reward(action[0])
+        reward, result_type = self._calc_reward(action)
         self.step_count += 1
 
-        # step log
-        # if self.step_count % 100 <= 70:  # day
-        #     fprintNoHp((0, self.step_count, self.obs, action[0], reward, result))
-        # else:  # night
-        #     fprintNoHp((1, self.step_count, self.obs, action[0], reward, result))
-
         # update episode log
-        updateEpisodeLog(self.episode_log_list, action[0], result_type, reward)
+        updateEpisodeLog(self.episode_log_list, action, result_type, reward)
 
         # Done when the agent dies.
         if self.obs[1] <= 2.0 or self.obs[2] <= 2.0 or self.obs[3] <= 2.0:
-
-            # show episode log
             showEpisodeLog(self.episode_log_list)
-
-            # write episode log
-            writeEpisodeLog(self.log_txt, self.episode_log_list)
-
-            print("done")
-
+            # writeEpisodeLog(self.log_txt, self.episode_log_list)
             done = True
         else:
             done = False
@@ -128,10 +81,78 @@ class JihuangSimple(gym.Env):
 
         return obs_scale, reward, done, info
 
+    def select_target(self, action: int):
+        if action <= 2:
+            if action == 1:
+                pigs = self.obs_process._find_pigs(self.obs)
+                if len(pigs) <= 0:
+                    return random.randint(0, 40), random.randint(0, 40)
+                return pigs[0][0], pigs[0][1]
+            if action == 2:
+                rivers = self.obs_process._find_rivers(self.obs)
+                if len(rivers) <= 0:
+                    return random.randint(0, 40), random.randint(0, 40)
+                return rivers[0][0], rivers[0][1]
+        elif action <= 5:
+            if action == 3:  # pickup
+                backpack = self.obs_process._analyse_backpack(self.obs)
+                material = self.obs_process._material_process_pickup(self.obs,
+                                                                     self.obs_process._find_material(self.obs))
+                if backpack[70009] <= 0:
+                    if list_dict_contain(material, 70009):
+                        return 70009, 0
+                    elif list_dict_contain(material, 30001) and list_dict_contain(material, 30002):
+                        if backpack[30001] < backpack[30002]:
+                            return 30001, 0
+                        else:
+                            return 30002, 0
+                    elif list_dict_contain(material, 30001) == True and list_dict_contain(material, 30002) == False:
+                        return 30001, 0
+                    elif list_dict_contain(material, 30001) == False and list_dict_contain(material, 30002) == True:
+                        return 30002, 0
+                    else:
+                        return 0, 0
+                else:
+                    if list_dict_contain(material, 30001) and list_dict_contain(material, 30002):
+                        if backpack[30001] < backpack[30002]:
+                            return 30001, 0
+                        else:
+                            return 30002, 0
+                    elif list_dict_contain(material, 30001) == True and list_dict_contain(material, 30002) == False:
+                        return 30001, 0
+                    elif list_dict_contain(material, 30001) == False and list_dict_contain(material, 30002) == True:
+                        return 30002, 0
+                    else:
+                        return 0, 0
+
+            if action == 4:  # consume
+                satiety = self.obs[2]
+                thirsty = self.obs[3]
+                if satiety <= thirsty:
+                    return 30002, 0
+                else:
+                    return 30001, 0
+
+            if action == 5:
+                return 70009, 0
+
+        elif action == 6:  # move, pigs(*)/material
+            x_init, y_init = self.obs[5], self.obs[6]
+            pigs = self.obs_process._find_pigs(self.obs)
+            # materials = self.obs_process._find_material(self.obs)
+            if len(pigs) > 0:
+                pig_x, pig_y = pigs[0][0], pigs[0][1]
+                agent_pig_distance = np.sqrt((pig_x - x_init) ** 2 + (pig_y - y_init) ** 2)
+                offset_x, offset_y = 4.1 * (pig_x - x_init) / agent_pig_distance, 4.1 * (
+                        pig_y - y_init) / agent_pig_distance
+                return int(offset_x), int(offset_y)
+            else:
+                offset_x, offset_y = random_find_pig()
+                return offset_x, offset_y
+
     # -------------------- calc_reward -------------------- #
     def _calc_reward(self, action_id):
         reward = 0.
-        result = ""
         result_type = ""
 
         # calc idle reward
@@ -140,36 +161,28 @@ class JihuangSimple(gym.Env):
 
         # calc attack reward
         if action_id == 1:
-            reward, result_type = self.reward._attack_pig_reward(self._prev_obs, self.obs, self._prev_pigs)
-            # result = "| attack: {} | kill: {} |".format(attack, killed)
-
-        # calc move reward
-        if action_id == 2:
-            pigs = self.obs_process._find_pigs(self.obs)
-            reward, result_type = self.reward._move_reward(self._prev_obs, self.obs, self._prev_pigs, pigs)
-            # result = "| move: {} |".format(move)
-
-        # calc consume reward
-        if action_id == 3:
-            reward, result_type = self.reward._consume_reward(self._prev_obs, self.obs)
-            # result = "| consume_type: {} |".format(consume_type)
+            reward, result_type = self.reward._attack_pig_reward(self._prev_obs, self.obs)
 
         # calc collect reward
-        if action_id == 4:
+        if action_id == 2:
             reward, result_type = self.reward._collect_water_reward(self.obs)
-            # result = "| collect_type: {} |".format(collect_type)
 
         # calc pickup reward
-        if action_id == 5:
+        if action_id == 3:
             reward, result_type = self.reward._pickup_material_reward(self._prev_obs, self.obs)
-            # result = "| pick_type: {} |".format(pick_type)
+
+        # calc consume reward
+        if action_id == 4:
+            reward, result_type = self.reward._consume_reward(self._prev_obs, self.obs)
 
         # calc equip reward
-        # 待修改
-        if action_id == 6:
+        if action_id == 5:
             reward, result_type = self.reward._equip_torch_reward(self._prev_obs, self.obs)
-            # result = "| equip_type: {} |".format(pick_type)
 
+        # calc move reward
+        if action_id == 6:
+            reward, result_type = self.reward._move_reward(self._prev_obs, self.obs)
+        # print("core reward:", reward, result_type)
         return reward, result_type
 
     # -------------------- env reset -------------------- #
@@ -189,6 +202,9 @@ class JihuangSimple(gym.Env):
         self.obs = self.env.get_agent_observe()[0]
         obs_scale = self.obs_process._obs_scale(self.obs)
         return obs_scale
+
+        # obs_mask = self.obs_process._obs_mask(self.obs)
+        # return obs_mask
 
     def render(self, mode='human'):
         if self.displayer is not None:

@@ -1,65 +1,32 @@
-# from Jihuang.reward import JihuangReward
 import os
 from Jihuang.obs_utils import JihuangObsProcess
 from datetime import datetime
+
+
+def list_dict_contain(list_dict, obj):
+    for i in list_dict:
+        if int(i[2]) == obj:
+            return True
+    return False
 
 
 # int action to string action
 def action2string(action):
     action_id = action
     if action_id == 0:
-        action_string = "Idle"
-        return action_string
+        return "Idle"
     elif action_id == 1:
-        action_string = "Attack"
-        return action_string
+        return "Attack"
     elif action_id == 2:
-        action_string = "Move"
-        return action_string
+        return "Collect"
     elif action_id == 3:
-        action_string = "Consume"
-        return action_string
+        return "Pickup"
     elif action_id == 4:
-        action_string = "Collect"
-        return action_string
+        return "Consume"
     elif action_id == 5:
-        action_string = "Pickup"
-        return action_string
+        return "Equip"
     elif action_id == 6:
-        action_string = "Equip"
-        return action_string
-
-
-# 规范化输出
-def fprint(obj):
-    day, step_count, obs, action, reward, result = obj
-    if day == 0:
-        print("|--白天--| Step: {:>2d} | Agent: {:>5f} {:>4f} {:>4f} | Action: {} | Reward: {} | Result: {}"
-              .format(step_count, obs[1], obs[2], obs[3], action2string(action), reward, result))
-    else:
-        print("|--黑夜--| Step: {:>2d} | Agent: {:>5f} {:>4f} {:>4f} | Action: {} | Reward: {} | Result: {}"
-              .format(step_count, obs[1], obs[2], obs[3], action2string(action), reward, result))
-
-
-# 规范化输出
-def fprintNoHp(obj):
-    obs_utils_func = JihuangObsProcess()
-    day, step_count, obs, action, reward, result = obj
-    backpack = obs_utils_func._analyse_backpack(obs)
-    equipment = obs_utils_func._find_equipment(obs)
-    buff = obs_utils_func._find_buff(obs)
-    if day == 0:
-        print(
-            "|白天| Step: {:>2d} | Agent: {:>2d} {:>2d} | Water Meat Torch: {} {} {} | Equip: {} "
-            "| night vision: {} {} | Action: {} | Reward: {} | Result: {}"
-                .format(step_count, int(obs[2]), int(obs[3]), backpack[30001], backpack[30002], backpack[70009],
-                        equipment[70009], buff[3001], buff[1001], action2string(action), reward, result))
-    else:
-        print(
-            "|黑夜| Step: {:>2d} | Agent: {:>2d} {:>2d} | Water Meat Torch: {} {} {} | Equip: {} "
-            "| night vision: {} {} | Action: {} | Reward: {} | Result: {}"
-                .format(step_count, int(obs[2]), int(obs[3]), backpack[30001], backpack[30002], backpack[70009],
-                        equipment[70009], buff[3001], buff[1001], action2string(action), reward, result))
+        return "Move"
 
 
 def dictCompare(dict1, dict2, key=None):
@@ -82,27 +49,16 @@ def getLogPath():
 
 """
 loglist: 
-
 step: count
-
 reward_sum: sum
-
 # each action has its format -> dict
-
 0 -> Idle: count
-
 1 -> Attack: type, count, reward, attack_count, attack_reward, kill_count, kill_reward, fail_count
-
 2 -> Move: type, count, reward, success_count, success_reward, fail_count
-
 3 -> Consume: type, count, reward, meat_count, meat_reward, water_count, water_reward, fail_count
-
 4 -> Collect: type, count, reward, water_count, water_reward, fail_count
-
 5 -> Pickup: type, count, reward, meat_count, meat_reward, water_count, water_reward, fail_count
-
 6 -> Equip: type, count, reward, torch_count, torch_reward, fail_count
-
 """
 
 
@@ -130,26 +86,6 @@ def initEpisodeLog():
     log_dict_Attack["fail_count"] = 0
     log_list.append(log_dict_Attack)
 
-    log_dict_Move = {}
-    log_dict_Move["type"] = "Move"
-    log_dict_Move["count"] = 0
-    log_dict_Move["reward"] = 0.
-    log_dict_Move["success_count"] = 0
-    log_dict_Move["success_reward"] = 0.
-    log_dict_Move["fail_count"] = 0
-    log_list.append(log_dict_Move)
-
-    log_dict_Consume = {}
-    log_dict_Consume["type"] = "Consume"
-    log_dict_Consume["count"] = 0
-    log_dict_Consume["reward"] = 0.
-    log_dict_Consume["meat_count"] = 0
-    log_dict_Consume["meat_reward"] = 0.
-    log_dict_Consume["water_count"] = 0
-    log_dict_Consume["water_reward"] = 0.
-    log_dict_Consume["fail_count"] = 0
-    log_list.append(log_dict_Consume)
-
     log_dict_Collect = {}
     log_dict_Collect["type"] = "Collect"
     log_dict_Collect["count"] = 0
@@ -167,8 +103,21 @@ def initEpisodeLog():
     log_dict_Pickup["meat_reward"] = 0.
     log_dict_Pickup["water_count"] = 0
     log_dict_Pickup["water_reward"] = 0.
+    log_dict_Pickup["torch_count"] = 0
+    log_dict_Pickup["torch_reward"] = 0.
     log_dict_Pickup["fail_count"] = 0
     log_list.append(log_dict_Pickup)
+
+    log_dict_Consume = {}
+    log_dict_Consume["type"] = "Consume"
+    log_dict_Consume["count"] = 0
+    log_dict_Consume["reward"] = 0.
+    log_dict_Consume["meat_count"] = 0
+    log_dict_Consume["meat_reward"] = 0.
+    log_dict_Consume["water_count"] = 0
+    log_dict_Consume["water_reward"] = 0.
+    log_dict_Consume["fail_count"] = 0
+    log_list.append(log_dict_Consume)
 
     log_dict_Equip = {}
     log_dict_Equip["type"] = "Equip"
@@ -179,11 +128,19 @@ def initEpisodeLog():
     log_dict_Equip["fail_count"] = 0.
     log_list.append(log_dict_Equip)
 
+    log_dict_Move = {}
+    log_dict_Move["type"] = "Move"
+    log_dict_Move["count"] = 0
+    log_dict_Move["reward"] = 0.
+    log_dict_Move["success_count"] = 0
+    log_dict_Move["success_reward"] = 0.
+    log_dict_Move["fail_count"] = 0
+    log_list.append(log_dict_Move)
+
     return log_list
 
 
 def showEpisodeLog(log_list):
-    # print("------------------------------------------------------------------")
     for i in log_list:
         print(i)
     print()
@@ -231,17 +188,17 @@ def updateEpisodeLog(log_list, action_type, result_type, reward):
         if result_type == "fail":
             log_list[2]["fail_count"] += 1
 
-    # Move
+    # Collect
     elif action_id == 2:
         log_list[3]["count"] += 1
         log_list[3]["reward"] += reward
-        if result_type == "move":
-            log_list[3]["success_count"] += 1
-            log_list[3]["success_reward"] += reward
+        if result_type == "water":
+            log_list[3]["water_count"] += 1
+            log_list[3]["water_reward"] += reward
         if result_type == "fail":
             log_list[3]["fail_count"] += 1
 
-    # Consume
+    # Pickup
     elif action_id == 3:
         log_list[4]["count"] += 1
         log_list[4]["reward"] += reward
@@ -253,40 +210,65 @@ def updateEpisodeLog(log_list, action_type, result_type, reward):
             log_list[4]["water_count"] += 1
             log_list[4]["water_reward"] += reward
 
+        if result_type == "torch":
+            log_list[4]["torch_count"] += 1
+            log_list[4]["torch_reward"] += reward
+
         if result_type == "fail":
             log_list[4]["fail_count"] += 1
 
-    # Collect
+    # Consume
     elif action_id == 4:
         log_list[5]["count"] += 1
         log_list[5]["reward"] += reward
+        if result_type == "meat":
+            log_list[5]["meat_count"] += 1
+            log_list[5]["meat_reward"] += reward
+
         if result_type == "water":
             log_list[5]["water_count"] += 1
             log_list[5]["water_reward"] += reward
+
         if result_type == "fail":
             log_list[5]["fail_count"] += 1
 
-    # Pickup
+    # Equip
     elif action_id == 5:
         log_list[6]["count"] += 1
         log_list[6]["reward"] += reward
-        if result_type == "meat":
-            log_list[6]["meat_count"] += 1
-            log_list[6]["meat_reward"] += reward
-
-        if result_type == "water":
-            log_list[6]["water_count"] += 1
-            log_list[6]["water_reward"] += reward
-
+        if result_type == "torch":
+            log_list[6]["torch_count"] += 1
+            log_list[6]["torch_reward"] += reward
         if result_type == "fail":
             log_list[6]["fail_count"] += 1
 
-    # Equip
+    # Move
     elif action_id == 6:
         log_list[7]["count"] += 1
         log_list[7]["reward"] += reward
-        if result_type == "torch":
-            log_list[7]["torch_count"] += 1
-            log_list[7]["torch_reward"] += reward
+        if result_type == "move":
+            log_list[7]["success_count"] += 1
+            log_list[7]["success_reward"] += reward
         if result_type == "fail":
             log_list[7]["fail_count"] += 1
+
+
+# 规范化输出
+def fprintNoHp(obj):
+    obs_utils_func = JihuangObsProcess()
+    day, step_count, obs = obj
+    equipment = obs_utils_func._find_equipment(obs)
+    buff = obs_utils_func._find_buff(obs)
+    if day == 0:
+        print("|白天| Step: {:>2d} | Equip: {} | night vision: {} {} |"
+              .format(step_count, equipment[70009], buff[3001], buff[1001]))
+    else:
+        print("|黑夜| Step: {:>2d} | Equip: {} | night vision: {} {} |"
+              .format(step_count, equipment[70009], buff[3001], buff[1001]))
+
+
+# print(
+        #     "|黑夜| Step: {:>2d} | Agent: {:>2d} {:>2d} | Water Meat Torch: {} {} {} | Equip: {} "
+        #     "| night vision: {} {} | Action: {} | Reward: {} | Result: {}"
+        #         .format(step_count, int(obs[2]), int(obs[3]), backpack[30001], backpack[30002], backpack[70009],
+        #                 equipment[70009], buff[3001], buff[1001], action2string(action), reward, result))
