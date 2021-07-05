@@ -1,0 +1,188 @@
+int_config_table{
+    field_name:"  Id  #  Width  #  Height  #  TimeStep  #  LengthOfOneDay  #  SeasonBegin  #  GameBeginTime  #  GeographyEdgeNoise  #  LengthOfOneMonth  #  LengthOfOneYear  "
+    records:   "  1   #   40    #    40    #     1      #        100       #       0       #        0        #          4           #         30         #        12         "
+}
+bool_config_table{
+    field_name:"  Id  #  TurnAround  #  FullView  #  RepeatedMove  #  Borderless  #  UseBirthPoint  "
+    records:   "  1   #      0       #     1      #       0        #      0       #        1        "
+}
+birth_point_table{
+    field_name:"  Id  #    Name          #     birth_point_geography_type       "
+    records:   "  1   #    Agent         #           (0;10)                    "
+    records:   "  2   #    Pig           #           (0;20)                    "
+    records:   "  2   #    Pig           #           (2;10)                    "
+    records:   "  4   #    Wolf          #           (2;10)                    "
+    records:   "  5   #    Tree          #           (2;10)                    "
+    records:   "  6   #    River         #           (0;30)                    "
+    records:   "  6   #    River         #           (2;10)                    "
+    records:   "  7   #    Mine          #           (1;10)                    "
+}
+name_to_type_table{
+    field_name:"  Id  #  Type   #     Name      "
+    records:   "  1   #    0    #   Agent       "
+    records:   "  2   #    2    #   Pig         "
+    records:   "  3   #    3    #   Wolf        "
+    records:   "  4   #  10004  #   Tree        "
+    records:   "  5   #  10005  #   River       "
+    records:   "  6   #  10006  #   Mine        "
+    records:   "  7   #  30001  #   Water       "
+    records:   "  8   #  30002  #   Meat        "
+    records:   "  9   #  40003  #   Leather     "
+    records:   "  10  #  40004  #   Wood        "
+    records:   "  11  #  40005  #   Stone       "
+    records:   "  12  #  80006  #   WarmStone   "
+    records:   "  13  #  70007  #   Spear       "
+    records:   "  14  #  80008  #   Coat        "
+    records:   "  15  #  70009  #   Torch       "
+    records:   "  16  #  80010  #   RainShoes   "
+    records:   "  17  #  40011  #   HpPot       "
+}
+state_name_to_index_table{
+    field_name:"  Id  #  StateIndex  #       Name       "
+    records:   "  1   #      0       #       null       "
+    records:   "  2   #      1       #      attack      "
+    records:   "  2   #      2       #      collect     "
+    records:   "  3   #      3       #       pick       "
+    records:   "  4   #      4       #      consume     "
+    records:   "  5   #      5       #      equip       "
+    records:   "  6   #      6       #    synthesis     "
+    records:   "  7   #      7       #       discard    "
+    records:   "  8   #      8       #       move       "
+}
+
+attr_name_to_index_table{
+    field_name:"  Id  #  AttrIndex  #           Name           "
+    records:   "  1   #      1      #            hp            "
+    records:   "  2   #      2      #         atk_phy          "
+    records:   "  3   #      3      #         def_phy          "
+    records:   "  4   #      4      #         satiety          "
+    records:   "  5   #      5      #         thirsty          "
+    records:   "  6   #     10      #     attack_distance      "
+    records:   "  7   #     11      #     pick_up_distance     "
+    records:   "  8   #     12      #       vision_range       "
+    records:   "  9   #     18      #        run_speed         "
+    records:   "  11  #     22      #       temperature        "
+    records:   "  12  #     23      #  resource_rebirth_count  "
+    records:   "  13  #     24      #     regenerate_count     "
+    records:   "  14  #     101     #        aggressive        "
+    records:   "  15  #     102     #      random_revive       "
+    records:   "  16  #     103     #        attackable        "
+    records:   "  17  #     104     #       collectable        "
+    records:   "  18  #     109     #      backpack_drop       "
+    records:   "  19  #     207     #    backpack_capacity     "
+    records:   "  20  #     209     #        durability        "
+    records:   "  21  #     211     #    derease_durability    "
+    records:   "  22  #     212     #    additional_status     "
+    records:   "  23  #     214     #     max_overlay_num      "
+    records:   "  24  #     215     #         drop_ID          "
+    records:   "  25  #     216     #      collection_ID       "
+}
+agent_table{
+    field_name:"  Id  #  Type  #  Name   #  attackable  #  collectable  #  vision_range  #  aggressive  #  run_speed  #   hp    #  atk_phy  #  def_phy  #  attack_distance  #  pick_up_distance  #  satiety  #  thirsty  #  temperature  #  backpack_capacity  #  backpack_drop  #  random_revive  #  regenerate_count  "
+    records:   "  1   #   0    #  Agent  #      1       #       0       #      8.1       #      0       #    2.9      #  1000   #  60       #   30.0    #        4.1        #        10.1         #   100.0   #   100.0   #     36.0      #         24          #        0        #        1        #         0          "
+}
+animal_table{
+    field_name:"  Id  #  Type  #  Name  #  attackable  #  collectable  #  vision_range  #  aggressive  #  run_speed  #   hp    #  atk_phy  #  def_phy  #  drop_ID  #  attack_distance  #  run_speed_var  #  hp_var  #  atk_phy_var  #  def_phy_var  #  regenerate_count  #  random_revive  "
+    records:   "  1   #   2    #  Pig   #      1       #       0       #      6.0       #      0       #     0.5     #  100  #    0.0    #    0.0    #  100002   #        3.1        #        0        #   50     #       0       #       0       #         8          #        1        "
+    records:   "  2   #   3    #  Wolf  #      1       #       0       #      6.0       #      1       #     0.1     #  1000   #   60.0    #    20.0   #  100003   #        3.1        #        1        #   50     #      10       #       10      #         8          #        1        "
+}
+plant_table{
+    field_name:"  Id  #  Type   #    Name     #  attackable  #  collectable  #  vision_range  #  aggressive  #   hp    #  atk_phy  #  def_phy  #  drop_ID  #  collection_ID  #  attack_distance  #  hp_var  #  atk_phy_var  #  def_phy_var  #  regenerate_count  #  random_revive  #  resource_rebirth_count  "
+    records:   "  1   #  10004  #    Tree     #      0       #       1       #      0.0       #      0       #  100.0  #    0.0    #    0.0    #  100004   #       104       #        0.0        #    0     #       0       #       0       #         10         #        0        #            8             "
+    records:   "  2   #  10005  #  River      #      0       #       1       #      0.0       #      0       #  100.0  #    0.0    #    0.0    #  100005   #       105       #        0.0        #    0     #       0       #       0       #         10         #        0        #            8             "
+    records:   "  2   #  10006  #  Mine       #      0       #       1       #      0.0       #      0       #  100.0  #    0.0    #    0.0    #  100006   #       106       #        0.0        #    0     #       0       #       0       #         10         #        0        #            8             "
+}
+item_table{
+    field_name:"  Id  #  Type   #     Name      #  add_type  #  add_value  #  max_overlay_num  #  additional_status  #  attack_distance  #  durability  #  derease_durability  "
+    records:   "  1   #  30001  #     Water     #     5      #     50      #         1         #          0          #        0.0        #  (100;100)   #          1           "
+    records:   "  2   #  30002  #     Meat      #     4      #     50      #         1         #          0          #        0.0        #  (100;100)   #          1           "
+    records:   "  3   #  40003  #    Leather    #     0      #      0      #         1         #          0          #        0.0        #  (100;100)   #          1           "
+    records:   "  4   #  40004  #    Wood       #     0      #      0      #         1         #          0          #        0.0        #  (100;100)   #          1           "
+    records:   "  5   #  40005  #    Stone      #     0      #      0      #         1         #          0          #        0.0        #  (100;100)   #          1           "
+    records:   "  6   #  80006  #  WarmStone    #     22     #     10      #         1         #          0          #        0.0        #  (20;20)     #          1           "
+    records:   "  7   #  70007  #     Spear     #     2      #     40      #         1         #          0          #        1.0        #  (20;20)     #          1           "
+    records:   "  8   #  80008  #     Coat      #     3      #     20      #         1         #          0          #        0.0        #  (20;20)     #          1           "
+    records:   "  9   #  70009  #     Torch     #     0      #      0      #         1         #        1001         #        0.0        #  (100;100)   #          1           "
+    records:   "  10  #  80010  #    RainShoes  #     18     #      1      #         1         #          0          #        0.0        #  (20;20)     #          1           "
+    records:   "  11  #  40011  #   HpPot       #     0      #     100     #         1         #          0          #        0.0        #  (100;100)   #          1           "
+}
+
+
+buff_table{
+    field_name:"  Id  #  BuffID  #          Name           #  target_type  #   deactive_attribute_type   #     active_attribute_type       #  add_buff_type  "
+    records:   "  3   #  10001   #  metabolic_consumption  #       0       #             ()              #(4;1;-2;-2;35;1),(5;2;-2;-2;37;1)#       ()        "
+    records:   "  3   #  10002   #  metabolic_recover      #       0       #             ()              #       (1;3;30;60;5;10;1)        #       ()        "
+    records:   "  1   #   3001   #          night          #       0       #        (12;0;-8;1)          #               ()                #       ()        "
+    records:   "  4   #   1001   #      night_vision       #       0       #        (12;0;8;1)           #               ()                #       ()        "
+    records:   "  1   #   3002   #          hot            #       0       #        (22;0;0;1)           #               ()                #       ()        "
+    records:   "  1   #   3003   #          cold           #       0       #        (22;0;0;1)           #               ()                #       ()        "
+    records:   "  5   #   3004   #         spring          #      -1       #  (23;0;0;1),(24;0;0;1)      #               ()                #       ()        "
+    records:   "  7   #   3005   #         winter          #      -1       #  (23;0;0;1),(24;0;0;1)      #               ()                #       ()        "
+    records:   "  8   #   3006   #         sunny           #       0       #        (22;0;0;1)           #               ()                #       ()        "
+    records:   "  9   #   3007   #         rainny          #       0       #        (18;0;0;1)           #               ()                #       ()        "
+}
+drop_table{
+    field_name:"  Id  #  DropID  #  DropType  #              DropModule              "
+    records:   "  1   #  100002  #     2      #           (30002;4000;1;1)           "
+    records:   "  2   #  100003  #     2      #                                      "
+}
+collection_table{
+    field_name:"  Id  #  CollectionID  #  FixedCollectionType  #  FixedCollectionModule  #  RebornCollectionType  #  RebornCollectionModule  "
+    records:   "  1   #      104       #           1           #   (40004;10000;1;1)     #           1            #    ()                    "
+    records:   "  2   #      105       #           1           #   (30001;10000;1;1)     #           1            #    ()                    "
+    records:   "  2   #      106       #           1           #   (40005;10000;1;1)     #           1            #    ()                    "
+}
+synthesis_table{
+    field_name:"  Id  #  Type   #  Name       #   SynthesisModule                           #  GenerateNum  "
+    records:   "  1   #  80006  #  WarmStone  #  (                40003;1,40004;1,40005;2)  #       1       "
+    records:   "  1   #  70007  #  Spear      #  (                40003;1,40004;2,40005;1)  #       1       "
+    records:   "  2   #  80008  #  Coat       #  (                40003;2,40004;1,40005;1)  #       1       "
+    records:   "  3   #  70009  #  Torch      #  (                        40004;2        )  #       1       "
+    records:   "  3   #  80010  #  RainShoes  #  (                40003;1,40004;1        )  #       1       "
+    records:   "  3   #  40011  #  HpPot      #  (30001;1,30002;1,        40004;1        )  #       1       "
+}
+weather_distribution_table{
+    field_name:"  Id  #  season  #  geography  #  weather  #  weight  "
+    records:   "  1   #    0     #      0      #     0     #    8     "
+    records:   "  2   #    0     #      0      #     1     #    2     "
+    records:   "  3   #    0     #      1      #     0     #    8     "
+    records:   "  4   #    0     #      1      #     1     #    2     "
+    records:   "  5   #    0     #      2      #     0     #    8     "
+    records:   "  6   #    0     #      2      #     1     #    2     "
+    records:   "  7   #    1     #      0      #     0     #    5     "
+    records:   "  8   #    1     #      0      #     1     #    5     "
+    records:   "  9   #    1     #      1      #     0     #    5     "
+    records:   "  10  #    1     #      1      #     1     #    5     "
+    records:   "  11  #    1     #      2      #     0     #    5     "
+    records:   "  12  #    1     #      2      #     1     #    5     "
+    records:   "  13  #    2     #      0      #     0     #    1     "
+    records:   "  14  #    2     #      0      #     1     #    0     "
+    records:   "  15  #    2     #      1      #     0     #    1     "
+    records:   "  16  #    2     #      1      #     1     #    0     "
+    records:   "  17  #    2     #      2      #     0     #    1     "
+    records:   "  18  #    2     #      2      #     1     #    0     "
+    records:   "  19  #    3     #      0      #     0     #    1     "
+    records:   "  20  #    3     #      0      #     1     #    0     "
+    records:   "  21  #    3     #      1      #     0     #    1     "
+    records:   "  22  #    3     #      1      #     1     #    0     "
+    records:   "  23  #    3     #      2      #     0     #    1     "
+    records:   "  24  #    3     #      2      #     1     #    0     "
+}
+weather_table{
+    field_name:"  Id  #  weather_type  #  weather_name  #  additional_buff       #  duration  "
+    records:   "  1   #       0        #     sunny      #        (3006;)         #   (25,50) "
+    records:   "  2   #       1        #     rainny     #        (3007;)         #   (25,50) "
+}
+geography_table{
+    field_name:"  Id  #  geography_type  #  geography_name  #  area_ratio  #  additional_buff       "
+    records:   "  1   #        0         #    grassland     #      12      #        ()              "
+    records:   "  2   #        1         #     mountain     #      2       #        ()              "
+    records:   "  3   #        2         #      forest      #      6       #        ()              "
+}
+season_table{
+    field_name:"  Id  #  season_type  #  season_name  #  season_end_time  #  night_begin_time  #  additional_buff     "
+    records:   "  1   #       0       #    spring     #         3         #         70         #       (3004;)        "
+    records:   "  2   #       1       #    summer     #         6         #         70         #       (3002;)        "
+    records:   "  3   #       2       #    autumn     #         9         #         70         #           ()         "
+    records:   "  4   #       3       #    winter     #        12         #         70         #       (3005;3003)    "
+}
